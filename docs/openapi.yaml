@@ -1,0 +1,189 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: GenDataService API
+    version: 0.0.1
+paths:
+    /v1/gen:
+        post:
+            tags:
+                - GenDataService
+            operationId: GenDataService_Gen
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GenRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GenResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/predefined-settings:
+        get:
+            tags:
+                - GenDataService
+            operationId: GenDataService_PredefinedSettings
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PredefinedSettingsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        Config:
+            type: object
+            properties:
+                langSettings:
+                    $ref: '#/components/schemas/LangSettings'
+                lang:
+                    type: string
+                dataFormat:
+                    type: string
+                rootClassName:
+                    type: string
+                prefixClassName:
+                    type: string
+                suffixClassName:
+                    type: string
+                sortProperties:
+                    type: boolean
+        ConfigMapping:
+            type: object
+            properties:
+                typeMapping:
+                    $ref: '#/components/schemas/TypeMapping'
+                typeDocMapping:
+                    $ref: '#/components/schemas/TypeMapping'
+                classNameMapping:
+                    type: string
+                fileNameMapping:
+                    type: string
+        Duration:
+            type: object
+            properties:
+                seconds:
+                    type: integer
+                    description: 'Signed seconds of the span of time. Must be from -315,576,000,000 to +315,576,000,000 inclusive. Note: these bounds are computed from: 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years'
+                    format: int64
+                nanos:
+                    type: integer
+                    description: Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 `seconds` field and a positive or negative `nanos` field. For durations of one second or more, a non-zero value for the `nanos` field must be of the same sign as the `seconds` field. Must be from -999,999,999 to +999,999,999 inclusive.
+                    format: int32
+            description: 'A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years. # Examples Example 1: Compute Duration from two Timestamps in pseudo code.     Timestamp start = ...;     Timestamp end = ...;     Duration duration = ...;     duration.seconds = end.seconds - start.seconds;     duration.nanos = end.nanos - start.nanos;     if (duration.seconds < 0 && duration.nanos > 0) {       duration.seconds += 1;       duration.nanos -= 1000000000;     } else if (duration.seconds > 0 && duration.nanos < 0) {       duration.seconds -= 1;       duration.nanos += 1000000000;     } Example 2: Compute Timestamp from Timestamp + Duration in pseudo code.     Timestamp start = ...;     Duration duration = ...;     Timestamp end = ...;     end.seconds = start.seconds + duration.seconds;     end.nanos = start.nanos + duration.nanos;     if (end.nanos < 0) {       end.seconds -= 1;       end.nanos += 1000000000;     } else if (end.nanos >= 1000000000) {       end.seconds += 1;       end.nanos -= 1000000000;     } Example 3: Compute Duration from datetime.timedelta in Python.     td = datetime.timedelta(days=3, minutes=10)     duration = Duration()     duration.FromTimedelta(td) # JSON Mapping In JSON format, the Duration type is encoded as a string rather than an object, where the string ends in the suffix "s" (indicating seconds) and is preceded by the number of seconds, with nanoseconds expressed as fractional seconds. For example, 3 seconds with 0 nanoseconds should be encoded in JSON format as "3s", while 3 seconds and 1 nanosecond should be expressed in JSON format as "3.000000001s", and 3 seconds and 1 microsecond should be expressed in JSON format as "3.000001s".'
+        GenRequest:
+            type: object
+            properties:
+                tmpl:
+                    type: string
+                    format: bytes
+                data:
+                    type: string
+                    format: bytes
+                config:
+                    $ref: '#/components/schemas/Config'
+        GenResponse:
+            type: object
+            properties:
+                renderedFiles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RenderedFile'
+                renderTime:
+                    $ref: '#/components/schemas/Duration'
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        LangSettings:
+            type: object
+            properties:
+                code:
+                    type: string
+                name:
+                    type: string
+                fileExtension:
+                    type: string
+                splitObjectByFiles:
+                    type: boolean
+                configMapping:
+                    $ref: '#/components/schemas/ConfigMapping'
+        PredefinedSettingsResponse:
+            type: object
+            properties: {}
+        RenderedFile:
+            type: object
+            properties:
+                content:
+                    type: string
+                    format: bytes
+                fileName:
+                    type: string
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        TypeMapping:
+            type: object
+            properties:
+                array:
+                    type: string
+                arrayBool:
+                    type: string
+                arrayFloat:
+                    type: string
+                arrayInt:
+                    type: string
+                arrayObject:
+                    type: string
+                arrayString:
+                    type: string
+                bool:
+                    type: string
+                float:
+                    type: string
+                int:
+                    type: string
+                "null":
+                    type: string
+                object:
+                    type: string
+                string:
+                    type: string
+tags:
+    - name: GenDataService

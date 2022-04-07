@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package gendata.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/gen-data/gendata-server/pkg/gendata;gendata";
+
+service GenDataService {
+  rpc Gen (GenRequest) returns (GenResponse) {
+    option (google.api.http) = {
+      post: "/v1/gen"
+      body: "*"
+    };
+  }
+  rpc PredefinedSettings (PredefinedSettingsRequest) returns (PredefinedSettingsResponse) {
+    option (google.api.http) = {
+      get: "/v1/predefined-settings"
+    };
+  }
+}
+
+message GenResponse {
+  repeated RenderedFile renderedFiles = 1;
+  google.protobuf.Duration renderTime = 2;
+}
+
+message RenderedFile {
+  bytes content = 1;
+  string fileName = 2;
+}
+
+message GenRequest {
+  bytes tmpl = 1;
+  bytes data = 2;
+  Config config = 3;
+}
+
+message Config {
+  LangSettings langSettings = 1;
+  string lang = 2;
+  string dataFormat = 3;
+  string rootClassName = 4;
+  string prefixClassName = 5;
+  string suffixClassName = 6;
+  bool sort_properties = 7;
+}
+
+message LangSettings {
+  string code = 1;
+  string name = 2;
+  string fileExtension = 3;
+  bool splitObjectByFiles = 4;
+  ConfigMapping configMapping = 5;
+}
+
+message ConfigMapping {
+  TypeMapping typeMapping = 1;
+  TypeMapping typeDocMapping = 2;
+  string classNameMapping = 3;
+  string fileNameMapping = 4;
+}
+
+message TypeMapping {
+  string array = 1;
+  string arrayBool = 2;
+  string arrayFloat = 3;
+  string arrayInt = 4;
+  string arrayObject = 5;
+  string arrayString = 6;
+  string bool = 7;
+  string float = 8;
+  string int = 9;
+  string null = 10;
+  string object = 11;
+  string string = 12;
+}
+
+message PredefinedSettingsRequest {
+}
+
+message PredefinedSettingsResponse {
+}
