@@ -12,10 +12,6 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/spf13/viper"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/sdk/resource"
-	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 )
 
@@ -63,6 +59,8 @@ func main() {
 	if err := v.Unmarshal(&cfg); err != nil {
 		panic(err)
 	}
+	cfg.Name = Name
+	cfg.Version = Version
 
 	var zapL *zap.Logger
 	{
@@ -87,13 +85,6 @@ func main() {
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
-
-	tp := tracesdk.NewTracerProvider(
-		tracesdk.WithResource(resource.NewSchemaless(
-			semconv.ServiceNameKey.String(Name),
-		)),
-	)
-	otel.SetTracerProvider(tp)
 
 	app, cleanup, err := wireApp(cfg, logger)
 	if err != nil {

@@ -21,6 +21,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/soheilhy/cmux"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 const (
@@ -127,6 +131,12 @@ func NewMiddlewares(
 		recovery.Recovery(),
 	}
 	if !c.Tracing.Disabled {
+		tp := tracesdk.NewTracerProvider(
+			tracesdk.WithResource(resource.NewSchemaless(
+				semconv.ServiceNameKey.String(c.Name),
+			)),
+		)
+		otel.SetTracerProvider(tp)
 		mws = append(mws, mwtracing.Server())
 	}
 	if !c.Logger.Disabled && logger != nil {

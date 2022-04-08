@@ -11,29 +11,22 @@ func LoadConfig(path string) (*Config, error) {
 	v := viper.New()
 	v.SetConfigFile(path)
 	v.SetConfigType("env")
-	v.AllowEmptyEnv(true)
+	v.AllowEmptyEnv(false)
 	v.AutomaticEnv()
-	loadDefault(v)
 
 	if err := v.ReadInConfig(); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 
-	cfg := new(Config)
-	if err := v.Unmarshal(&cfg); err != nil {
+	cfg := &Config{
+		Network: "tcp",
+		Addr:    ":8080",
+		Name:    "gendata-server",
+	}
+	if err := v.Unmarshal(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
-}
-
-func loadDefault(v *viper.Viper) {
-	v.SetDefault("DEBUG", false)
-	v.SetDefault("NETWORK", "tcp")
-	v.SetDefault("ADDR", ":8080")
-
-	v.SetDefault("TLS", false)
-	v.SetDefault("TLS_CRT", "/service.crt")
-	v.SetDefault("TLS_KEY", "/service.key")
 }
 
 type Config struct {
@@ -48,6 +41,8 @@ type Config struct {
 	Network string         `mapstructure:"NETWORK"`
 	Addr    string         `mapstructure:"ADDR"`
 	Debug   bool           `mapstructure:"DEBUG"`
+	Name    string         `mapstructure:"-"`
+	Version string         `mapstructure:"-"`
 }
 
 type TLS struct {

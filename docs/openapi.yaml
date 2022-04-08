@@ -35,6 +35,15 @@ paths:
             tags:
                 - GenDataService
             operationId: GenDataService_PredefinedSettings
+            parameters:
+                - name: code
+                  in: query
+                  schema:
+                    type: string
+                - name: name
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -133,7 +142,11 @@ components:
                     $ref: '#/components/schemas/ConfigMapping'
         PredefinedSettingsResponse:
             type: object
-            properties: {}
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/LangSettings'
         RenderedFile:
             type: object
             properties:

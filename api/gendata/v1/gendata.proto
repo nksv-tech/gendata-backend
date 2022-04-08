@@ -78,7 +78,10 @@ message TypeMapping {
 }
 
 message PredefinedSettingsRequest {
+  string code = 1;
+  string name = 2;
 }
 
 message PredefinedSettingsResponse {
+  repeated LangSettings items = 1;
 }
