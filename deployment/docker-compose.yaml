@@ -1,0 +1,37 @@
+version: "3.9"
+
+networks:
+  web:
+    driver: bridge
+
+services:
+  traefik:
+    image: "traefik:v2.6"
+    container_name: "traefik"
+    command:
+      - "--log.level=$DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - web
+
+  gendatasrv:
+    image: "gendatasrv:latest"
+    container_name: "gendatasrv"
+    env_file:
+      - .env
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gendatasrv.rule=Host(`localhost`)"
+      - "traefik.http.routers.gendatasrv.entrypoints=web"

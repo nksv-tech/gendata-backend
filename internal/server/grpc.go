@@ -5,12 +5,12 @@ import (
 	"math"
 	"time"
 
-	"github.com/gen-data/gendata-server/internal/config"
-	"github.com/gen-data/gendata-server/internal/service"
-	v1 "github.com/gen-data/gendata-server/pkg/gendata/v1"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	tgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
+	"github.com/nksv-tech/gendata-backend/internal/config"
+	"github.com/nksv-tech/gendata-backend/internal/service"
+	v1 "github.com/nksv-tech/gendata-backend/pkg/gendata/v1"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 )

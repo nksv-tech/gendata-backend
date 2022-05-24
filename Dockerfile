@@ -7,25 +7,23 @@ ENV GO111MODULE=on
 
 WORKDIR /src
 
-COPY go.mod go.sum /src/
-
+COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . /src
-
+COPY . .
 RUN make build
 
-FROM strach
+FROM scratch
 
 ENV ZONEINFO=/zoneinfo.zip
 
-WORKDIR /app
+WORKDIR /src
 
-COPY --from=builder /src/bin /app
-COPY --from=builder /src/.env /app/.env
+COPY --from=builder /src/bin /src
+COPY --from=builder /src/.env /src/.env
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=build /usr/local/go/lib/time/zoneinfo.zip /
+COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
 
 EXPOSE 8080
 
-CMD ["./main"]
+CMD ["./app"]

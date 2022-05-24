@@ -4,24 +4,29 @@ import (
 	"flag"
 	"os"
 
-	"github.com/gen-data/gendata-server/internal/config"
-	kzap "github.com/gen-data/gendata-server/internal/utils/zap"
 	kratos "github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/spf13/viper"
+	"github.com/nksv-tech/gendata-backend/internal/config"
+	kzap "github.com/nksv-tech/gendata-backend/internal/utils/zap"
 	"go.uber.org/zap"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
 // go build -ldflags "-X main.Name=gen-data"
+// go build -ldflags "-X main.Commit=hash"
+// go build -ldflags "-X main.Date=2022-04-21"
 var (
 	// Name is the name of the compiled software.
 	Name string
 	// Version is the version of the compiled software.
 	Version string
+	// Commit is the git commit of the compiled software.
+	Commit string
+	// Date is the date of the compiled software.
+	Date string
 	// flagconf is the config flag.
 	flagconf string
 
@@ -46,17 +51,8 @@ func newApp(logger log.Logger, g *grpc.Server, h *http.Server) *kratos.App {
 func main() {
 	flag.Parse()
 
-	v := viper.New()
-	v.SetConfigFile(flagconf)
-	v.AllowEmptyEnv(true)
-	v.AutomaticEnv()
-
-	if err := v.ReadInConfig(); err != nil {
-		panic(err)
-	}
-
-	cfg := new(config.Config)
-	if err := v.Unmarshal(&cfg); err != nil {
+	cfg, err := config.LoadConfig(flagconf)
+	if err != nil {
 		panic(err)
 	}
 	cfg.Name = Name
@@ -68,7 +64,6 @@ func main() {
 		if cfg.Debug {
 			zapCfg = zap.NewDevelopmentConfig()
 		}
-		var err error
 		zapL, err = zapCfg.Build()
 		if err != nil {
 			panic(err)
@@ -76,12 +71,20 @@ func main() {
 	}
 
 	kLog := kzap.NewLogger(zapL)
+	defer func(kLog *kzap.Logger) {
+		if err = kLog.Sync(); err != nil {
+			panic(err)
+		}
+	}(kLog)
+
 	logger := log.With(kLog,
 		"ts", log.DefaultTimestamp,
 		"caller", log.DefaultCaller,
 		"service.id", id,
 		"service.name", Name,
 		"service.version", Version,
+		"service.commit", Commit,
+		"service.build_date", Date,
 		"trace.id", tracing.TraceID(),
 		"span.id", tracing.SpanID(),
 	)
@@ -93,7 +96,7 @@ func main() {
 	defer cleanup()
 
 	// start and wait for stop signal
-	if err := app.Run(); err != nil {
+	if err = app.Run(); err != nil {
 		panic(err)
 	}
 }

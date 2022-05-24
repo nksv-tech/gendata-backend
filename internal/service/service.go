@@ -3,10 +3,12 @@ package service
 import (
 	"bytes"
 	"context"
+	"time"
 
-	v1 "github.com/gen-data/gendata-server/pkg/gendata/v1"
 	"github.com/google/wire"
 	gendata "github.com/nikitaksv/gendata/pkg/service"
+	v1 "github.com/nksv-tech/gendata-backend/pkg/gendata/v1"
+	inmemcache "github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
@@ -15,14 +17,25 @@ import (
 var ProviderSet = wire.NewSet(NewGenDataService)
 
 func NewGenDataService() *GenDataService {
-	return &GenDataService{}
+	const cacheExpiration = 72 * time.Hour
+	const cacheCleanInterval = 30 * time.Minute
+
+	return &GenDataService{
+		cache: inmemcache.New(cacheExpiration, cacheCleanInterval),
+	}
 }
 
 type GenDataService struct {
 	v1.UnimplementedGenDataServiceServer
+	cache *inmemcache.Cache
 }
 
 func (s *GenDataService) Gen(ctx context.Context, request *v1.GenRequest) (*v1.GenResponse, error) {
+	cacheKey := request.String()
+	if get, ok := s.cache.Get(cacheKey); ok {
+		return get.(*v1.GenResponse), nil
+	}
+
 	genreq := &gendata.GenRequest{
 		Tmpl: request.GetTmpl(),
 		Data: request.GetData(),
@@ -60,13 +73,15 @@ func (s *GenDataService) Gen(ctx context.Context, request *v1.GenRequest) (*v1.G
 		bs := bytes.Buffer{}
 		_, err := bs.ReadFrom(file.Content)
 		if err != nil {
-			return nil, errors.Wrapf(err, "can't read from file content")
+			return nil, errors.Wrapf(err, "can't read from rendered file '%s' content", file.FileName)
 		}
 		rsp.RenderedFiles[i] = &v1.RenderedFile{
 			Content:  bs.Bytes(),
 			FileName: file.FileName,
 		}
 	}
+
+	s.cache.SetDefault(cacheKey, rsp)
 
 	return rsp, nil
 }

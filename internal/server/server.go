@@ -5,7 +5,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/gen-data/gendata-server/internal/config"
 	"github.com/go-kratos/aegis/ratelimit"
 	"github.com/go-kratos/aegis/ratelimit/bbr"
 	prom "github.com/go-kratos/kratos/contrib/metrics/prometheus/v2"
@@ -18,6 +17,7 @@ import (
 	mwtracing "github.com/go-kratos/kratos/v2/middleware/tracing"
 	mwvalidate "github.com/go-kratos/kratos/v2/middleware/validate"
 	"github.com/google/wire"
+	"github.com/nksv-tech/gendata-backend/internal/config"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/soheilhy/cmux"
